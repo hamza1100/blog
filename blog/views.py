@@ -1,8 +1,11 @@
 from datetime import date
 from typing import Any
 from django.shortcuts import render
-from django.http import HttpResponse, Http404
-from django.views.generic import ListView, DetailView
+from django.urls import reverse
+from django.http import HttpResponseRedirect
+from django.views.generic import ListView
+from django.views import View
+from .forms import CommentForm
 
 from .models import Post
 
@@ -25,33 +28,34 @@ class AllPostsView(ListView):
     ordering = ['-date']
     context_object_name = 'all_posts'
 
-# def posts(request):
-#     try:
-#         all_posts = Post.objects.all().order_by('-date')
-#         return render(request, 'blog/all-posts.html', {
-#             'all_posts': all_posts
-#         })
-#     except:
-#         raise Http404()
+class SinglePostView(View):
+    def get(self, request, slug):
+        post = Post.objects.get(slug=slug)
+        print('length :', len(post.comments.all()))
+        context = {
+            'post': post,
+            'post_tags': post.tag.all(),
+            'comment_form': CommentForm(),
+            'comments': post.comments.all().order_by('-id'),
+            'comlen': len(post.comments.all())
+        }
+        return render(request, 'blog/post-detail.html', context)
 
-class SinglePostView(DetailView):
-    template_name = 'blog/post-detail.html'
-    model = Post
-    # context_object_name = 'post', 'post_tags'
+    def post(self, request, slug):
+        comment_form = CommentForm(request.POST)
+        post = Post.objects.get(slug=slug)
+        if comment_form.is_valid():
+            comment = comment_form.save(commit=False)
+            comment.post = post
+            comment.save()
 
-    def get_context_data(self, **kwargs: Any):
-        context = super().get_context_data(**kwargs)
-        context['post_tags'] = self.object.tag.all()
-        return context
-
-
-def post_detail(request, slug):
-    try:
-        # single_post = Post.objects.filter(slug=slug)
-        single_post = Post.objects.get(slug=slug)
-        return render(request, 'blog/post-detail.html', {
-            'post': single_post,
-            'post_tags': single_post.tag.all()
-        })
-    except:
-        raise Http404()
+            return HttpResponseRedirect(reverse('post-detail-page', args=[slug]))
+        
+        context = {
+            'post': post,
+            'post_tags': post.tag.all(),
+            'comment_form': comment_form,
+            'comments': post.comments.all().order_by('-id'),
+            'comlen': len(post.comments.all())
+        }
+        return render(request, 'blog/post-detail.html', context)
