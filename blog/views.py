@@ -79,11 +79,14 @@ def get_date(post):
 # Create your views here.
 
 def starting_page(request):
+    # print('hello world----------------------')
+    # return HttpResponse('/')
     try:
         all_posts = Post.objects.all().order_by('-date')[:3]
         print('all posts :', all_posts)
-        # sorted_posts = sorted(all_posts, key=get_date)
-        # latest_posts = sorted_posts[-3:]
+    #     print('all posts :', all_posts)
+    #     # sorted_posts = sorted(all_posts, key=get_date)
+    #     # latest_posts = sorted_posts[-3:]
         return render(request, "blog/index.html", {
             "posts": all_posts
         })
