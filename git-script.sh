@@ -13,4 +13,4 @@ TOKEN="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"
 git add .
 git commit -m "dockerize app"
 
-git push https://${USER_NAME}:${TOKEN}@github.com/${USER_NAME}/blog.git master
+git push https://${USER_NAME}:${TOKEN}@github.com/${USER_NAME}/blog.git dockerize-app
