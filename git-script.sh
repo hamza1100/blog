@@ -1,7 +1,7 @@
 #!/bin/bash
 
-USER_NAME="hamza1100"
-TOKEN="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"
+USER_NAME="your username"
+TOKEN="your git personal access token"
 
 
 # commands to create folder and file and add content to the file
@@ -11,6 +11,6 @@ TOKEN="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"
 
 # commands to stage, commit, and push the code the remote repository
 git add .
-git commit -m "dockerize app"
+git commit -m "commit message from git script"
 
 git push https://${USER_NAME}:${TOKEN}@github.com/${USER_NAME}/blog.git dockerize-app
