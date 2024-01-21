@@ -60,14 +60,15 @@ class SinglePostView(View):
 
     def post(self, request, slug):
         post = Post.objects.get(slug=slug)
+        toggle_checkbox = request.POST.get('commentByChatGPT', 'off')
 
         comment_data = {
             'username': request.POST['username'],
             'user_email': request.POST['user_email'],
-            'commentByChatGPT': request.POST['commentByChatGPT'], 
-            'text': request.POST['commentByChatGPT']
+            'commentByChatGPT': toggle_checkbox, 
+            'text': request.POST['text']
         }
-
+        
         is_checkbox_enabled_for_comment_generation = comment_data['commentByChatGPT']
         if is_checkbox_enabled_for_comment_generation == 'on':
                 chat_gpt_comment = client.completions.create(model="gpt-3.5-turbo",
