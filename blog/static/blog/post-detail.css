@@ -139,6 +139,11 @@ main {
   border-radius: 6px;
   border: 1px solid #ccc;
 }
+#id_commentByChatGPT {
+  width: 5%;
+  font: inherit;
+  border: 1px solid #ccc;
+}
 
 .errorlist {
   list-style: none;

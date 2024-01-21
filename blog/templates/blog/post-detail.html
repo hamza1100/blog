@@ -5,9 +5,30 @@
 {{ post.title }}
 {% endblock %} 
 
+{% block script_tag %}
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $("#id_commentByChatGPT").on("click", function() {
+        var checkbox = document.getElementById("id_commentByChatGPT");
+        var textarea = document.getElementById("id_text");
+        var textlabel = document.getElementsByTagName('label')[3]
+        var removerequired = document.getElementById("id_text")
+        if (checkbox.checked) {
+            textlabel.style.display = "none";
+            textarea.style.display = "none";
+            removerequired.required = false;
+        } else {
+            textlabel.style.display = "block";
+            textarea.style.display = "block";
+        }
+        });
+      });
+</script>
+{% endblock script_tag %}
+
 {% block css_files %}
   <link rel="stylesheet" href="{% static "blog/post-detail.css" %}" />
-  {% comment %} <link rel="stylesheet" href="{% static "blog/all-posts.css" %}" /> {% endcomment %}
 {% endblock %}
 
 {% block content %}

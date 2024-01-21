@@ -9,5 +9,6 @@ class CommentForm(forms.ModelForm):
         labels = {
             'username': 'Your Name',
             'user_email': 'Your Email',
+            'commentByChatGPT': 'Generate Comment Using OpenAI',
             'text': 'Your Comment'
         }
