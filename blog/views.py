@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.urls import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.conf import settings
 from openai import OpenAI
 
@@ -59,42 +59,45 @@ class SinglePostView(View):
         return render(request, 'blog/post-detail.html', context)
 
     def post(self, request, slug):
-        post = Post.objects.get(slug=slug)
-        toggle_checkbox = request.POST.get('commentByChatGPT', 'off')
+        try:
+            post = Post.objects.get(slug=slug)
+            toggle_checkbox = request.POST.get('commentByChatGPT', 'off')
 
-        comment_data = {
-            'username': request.POST['username'],
-            'user_email': request.POST['user_email'],
-            'commentByChatGPT': toggle_checkbox, 
-            'text': request.POST['text']
-        }
-        
-        is_checkbox_enabled_for_comment_generation = comment_data['commentByChatGPT']
-        if is_checkbox_enabled_for_comment_generation == 'on':
-                chat_gpt_comment = client.completions.create(model="gpt-3.5-turbo",
-                prompt=self.generate_prompt_for_openai(post.title),
-                temperature=0.6)
-                comment_data['text'] = chat_gpt_comment
-        
-        comment_form = CommentForm(comment_data)
-        
-        
-        if comment_form.is_valid():
-            comment = comment_form.save(commit=False)
-            comment.post = post
-            comment.save()
+            comment_data = {
+                'username': request.POST['username'],
+                'user_email': request.POST['user_email'],
+                'commentByChatGPT': toggle_checkbox, 
+                'text': request.POST['text']
+            }
+            
+            is_checkbox_enabled_for_comment_generation = comment_data['commentByChatGPT']
+            if is_checkbox_enabled_for_comment_generation == 'on':
+                    chat_gpt_comment = client.completions.create(model="gpt-3.5-turbo",
+                    prompt=self.generate_prompt_for_openai(post.title),
+                    temperature=0.6)
+                    comment_data['text'] = chat_gpt_comment
+            
+            comment_form = CommentForm(comment_data)
+            
+            
+            if comment_form.is_valid():
+                comment = comment_form.save(commit=False)
+                comment.post = post
+                comment.save()
 
-            return HttpResponseRedirect(reverse('post-detail-page', args=[slug]))
-        
-        context = {
-            'post': post,
-            'post_tags': post.tag.all(),
-            'comment_form': comment_form,
-            'comments': post.comments.all().order_by('-id'),
-            'comlen': len(post.comments.all()),
-            'saved_for_later': self.is_stored_post(request, post.id)
-        }
-        return render(request, 'blog/post-detail.html', context)
+                return HttpResponseRedirect(reverse('post-detail-page', args=[slug]))
+            
+            context = {
+                'post': post,
+                'post_tags': post.tag.all(),
+                'comment_form': comment_form,
+                'comments': post.comments.all().order_by('-id'),
+                'comlen': len(post.comments.all()),
+                'saved_for_later': self.is_stored_post(request, post.id)
+            }
+            return render(request, 'blog/post-detail.html', context)
+        except:
+            return HttpResponseNotFound('<h1>Something went wrong</<h1>')
     
 class ReadLaterView(View):
     def get(self, request):
