@@ -1,8 +1,10 @@
-from datetime import date
-from typing import Any
 from django.shortcuts import render
 from django.urls import reverse
 from django.http import HttpResponseRedirect
+from django.conf import settings
+from openai import OpenAI
+
+client = OpenAI(api_key=settings.OPENAI_API_KEY)
 from django.views.generic import ListView
 from django.views import View
 from .forms import CommentForm
@@ -38,6 +40,11 @@ class SinglePostView(View):
             is_saved_for_later = False
 
         return is_saved_for_later
+    
+    def generate_prompt_for_openai(self, input):
+        prompt = """add a comment on the following text just like someone would do on social media, 
+        sharing his/her experience. length should be within 200 words"""
+        return f'{prompt}: {input}'
 
     def get(self, request, slug):
         post = Post.objects.get(slug=slug)
@@ -52,8 +59,25 @@ class SinglePostView(View):
         return render(request, 'blog/post-detail.html', context)
 
     def post(self, request, slug):
-        comment_form = CommentForm(request.POST)
         post = Post.objects.get(slug=slug)
+
+        comment_data = {
+            'username': request.POST['username'],
+            'user_email': request.POST['user_email'],
+            'commentByChatGPT': request.POST['commentByChatGPT'], 
+            'text': request.POST['commentByChatGPT']
+        }
+
+        is_checkbox_enabled_for_comment_generation = comment_data['commentByChatGPT']
+        if is_checkbox_enabled_for_comment_generation == 'on':
+                chat_gpt_comment = client.completions.create(model="gpt-3.5-turbo",
+                prompt=self.generate_prompt_for_openai(post.title),
+                temperature=0.6)
+                comment_data['text'] = chat_gpt_comment
+        
+        comment_form = CommentForm(comment_data)
+        
+        
         if comment_form.is_valid():
             comment = comment_form.save(commit=False)
             comment.post = post
